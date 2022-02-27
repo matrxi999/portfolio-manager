@@ -6,10 +6,11 @@ import currency
 import requests
 
 dict_of_portfolio={}
-currencies =['AED', 'BRL', 'CAD', 'CHF', 'CLP', 'CNY', 'COP', 
-'CZK', 'DKK', 'EUR', 'GBP', 'HKD', 'HUF', 'IDR', 'ILS', 'INR', 
-'JPY', 'KRW', 'MXN', 'MYR', 'NOK', 'NZD', 'PHP', 'PLN', 'RON', 
-'RUB', 'SAR', 'SEK', 'SGD', 'THB', 'TRY', 'TWD', 'USD', 'ZAR', 'ZAR']
+currencies =['AED', 'BRL', 'CAD', 'CHF', 'CNY', 
+'CZK', 'DKK', 'EUR', 'GBP', 'HKD', 'ILS', 'INR', 
+'MXN', 'MYR', 'NOK', 'NZD', 'PHP', 'PLN', 'RON', 
+'RUB', 'SAR', 'SEK', 'SGD', 'THB', 'TRY', 'TWD', 
+'USD', 'ZAR']
 
 class Window(Toplevel):
     def __init__(self, parent):
@@ -65,14 +66,17 @@ class App(Tk):
         self.l2 = Label(self, text = "AMOUNT", font="Helvetica,12,bold").grid(row = 0, column = 2, padx= 5, pady=5)
 
         self.e1_value = StringVar()
-        self.e1 = Entry(self, textvariable = self.e1_value).grid(row = 1, column = 0, padx= 5, pady=5)
+        self.e1 = Entry(self, textvariable = self.e1_value, validate="focusout", validatecommand=self.validation).grid(row = 1, column = 0, padx= 5, pady=5)
         self.e2_value = StringVar()
-        self.e2 = Entry(self, textvariable = self.e2_value).grid(row = 1, column = 2, padx= 5, pady=5)
+        self.e2 = Entry(self, textvariable = self.e2_value, validate="focusout", validatecommand=self.validation).grid(row = 1, column = 2, padx= 5, pady=5)
 
-        self.b1 = Button(self, text = "ADD", command = self.add_to_list).grid(row = 2, column = 1, padx= 5, pady=5)
+        self.b1 = Button(self, text = "ADD", command = self.add_to_list)
+        self.b1.grid(row = 2, column = 1, padx= 5, pady=5)
+        self.b1.config(state='disabled')
         self.b2 = Button(self, text = "IMPORT", command = self.import_from_file).grid(row = 3, column = 0, padx= 5, pady=5)
         self.b3 = Button(self, text = "EXPORT", command = self.export_to_file).grid(row = 3, column = 2, padx= 5, pady=5)
         self.b4 = Button(self, text = "NEXT", command = self.open_window).grid(row = 3, column = 1, padx= 5, pady=5)
+
 
     def open_window(self):
         if dict_of_portfolio:
@@ -117,6 +121,16 @@ class App(Tk):
         a_file = open("data.pkl", "wb")
         pickle.dump(dict_of_portfolio, a_file)
         a_file.close()
+
+    def validation(self, *event):
+        y=self.e1_value.get()
+        z=self.e2_value.get()
+        print (len(y),":",len(z))
+        
+        if len(y)>0 and len(z)>0:
+            self.b1.config(state='normal')
+        else:
+            self.b1.config(state='disabled')
 
 if __name__ == "__main__":
     app = App()
