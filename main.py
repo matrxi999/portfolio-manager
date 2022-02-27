@@ -1,9 +1,11 @@
+from faulthandler import disable
 from tkinter import *
 import pickle
 from tkinter import messagebox
 import valuecheck
 import currency
 import requests
+import re
 
 dict_of_portfolio={}
 currencies =['AED', 'BRL', 'CAD', 'CHF', 'CNY', 
@@ -36,7 +38,7 @@ class Window(Toplevel):
         self.refresh_window(round(self.sum, 2))
 
         self.clicked = StringVar()
-        self.clicked.set('CHF')
+        self.clicked.set('USD')
         OptionMenu(self, self.clicked, *currencies, command=self.change_currency).grid(row = 0, column = 2)
 
         self.t2.delete("1.0", END)
@@ -62,20 +64,20 @@ class App(Tk):
         super().__init__()
         self.title('Main Window')
 
-        self.l1 = Label(self, text = "SYMBOL", font="Helvetica,12,bold").grid(row = 0, column = 0, padx= 5, pady=5)
-        self.l2 = Label(self, text = "AMOUNT", font="Helvetica,12,bold").grid(row = 0, column = 2, padx= 5, pady=5)
-
-        self.e1_value = StringVar()
-        self.e1 = Entry(self, textvariable = self.e1_value, validate="focusout", validatecommand=self.validation).grid(row = 1, column = 0, padx= 5, pady=5)
-        self.e2_value = StringVar()
-        self.e2 = Entry(self, textvariable = self.e2_value, validate="focusout", validatecommand=self.validation).grid(row = 1, column = 2, padx= 5, pady=5)
-
+        self.l1 = Label(self, text = "SYMBOL", font=("Helvetica",12)).grid(row = 0, column = 0, padx= 5, pady=5)
+        self.l2 = Label(self, text = "AMOUNT", font=("Helvetica",12)).grid(row = 0, column = 2, padx= 5, pady=5)
+        
         self.b1 = Button(self, text = "ADD", command = self.add_to_list)
         self.b1.grid(row = 2, column = 1, padx= 5, pady=5)
-        self.b1.config(state='disabled')
+        self.b1.config(state='active')
         self.b2 = Button(self, text = "IMPORT", command = self.import_from_file).grid(row = 3, column = 0, padx= 5, pady=5)
         self.b3 = Button(self, text = "EXPORT", command = self.export_to_file).grid(row = 3, column = 2, padx= 5, pady=5)
         self.b4 = Button(self, text = "NEXT", command = self.open_window).grid(row = 3, column = 1, padx= 5, pady=5)
+
+        self.e1_value = StringVar()
+        self.e1 = Entry(self, textvariable = self.e1_value).grid(row = 1, column = 0, padx= 5, pady=5)
+        self.e2_value = StringVar()
+        self.e2 = Entry(self, textvariable = self.e2_value).grid(row = 1, column = 2, padx= 5, pady=5)
 
 
     def open_window(self):
@@ -85,9 +87,22 @@ class App(Tk):
         else:
             messagebox.showwarning(title="Warning", message="Empty portfolio")
 
+    def incorrect_value(self):
+        self.l3 = Label(self, text = "Enter correct value", font=("Helvetica",8), fg="red").grid(row = 2, column = 2, padx= 5, pady=5)
+        self.e2_value.set('')
+
     def add_to_list(self):
-        symbol = str(self.e1_value.get())
-        amount = float(self.e2_value.get())
+
+        if len(self.e2_value.get()) == 0:
+                self.incorrect_value()
+                return None
+
+        try:
+            symbol = str(self.e1_value.get())
+            amount = float(self.e2_value.get())
+        except ValueError:
+            self.incorrect_value()
+            return None
 
         url = "https://finance.yahoo.com/quote/"+ symbol + "?p="+ symbol + "&.tsrc=fin-srch"
 
@@ -122,15 +137,6 @@ class App(Tk):
         pickle.dump(dict_of_portfolio, a_file)
         a_file.close()
 
-    def validation(self, *event):
-        y=self.e1_value.get()
-        z=self.e2_value.get()
-        print (len(y),":",len(z))
-        
-        if len(y)>0 and len(z)>0:
-            self.b1.config(state='normal')
-        else:
-            self.b1.config(state='disabled')
 
 if __name__ == "__main__":
     app = App()
