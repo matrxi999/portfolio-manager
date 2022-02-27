@@ -1,6 +1,7 @@
 from faulthandler import disable
 import tkinter as tk
 import tkinter.ttk as ttk
+from tkinter import *
 import pickle
 from tkinter import messagebox
 import valuecheck
@@ -9,7 +10,8 @@ import requests
 import re
 
 dict_of_portfolio={}
-currencies =['AED', 'BRL', 'CAD', 'CHF', 'CNY', 
+currencies =[
+'USD', 'AED', 'BRL', 'CAD', 'CHF', 'CNY', 
 'CZK', 'DKK', 'EUR', 'GBP', 'HKD', 'ILS', 'INR', 
 'MXN', 'MYR', 'NOK', 'NZD', 'PHP', 'PLN', 'RON', 
 'RUB', 'SAR', 'SEK', 'SGD', 'THB', 'TRY', 'TWD', 
@@ -18,7 +20,8 @@ currencies =['AED', 'BRL', 'CAD', 'CHF', 'CNY',
 class Window(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
-        self.title('Toplevel Window')
+        self.title('Portfolio Manager')
+        self.iconbitmap('portfolio-manager/wallet.ico')
 
         self.l1 = ttk.Label(self, text = "Portfolio value:").grid(row = 0, column = 0, padx= 5, pady=5)
         self.t1 = tk.Text(self, height = 1, width = 20)
@@ -39,7 +42,6 @@ class Window(tk.Toplevel):
         self.refresh_window(round(self.sum, 2))
 
         self.clicked = tk.StringVar()
-        self.clicked.set('USD')
         ttk.OptionMenu(self, self.clicked, *currencies, command=self.change_currency).grid(row = 0, column = 2)
 
         self.t2.delete("1.0", tk.END)
@@ -63,7 +65,8 @@ class Window(tk.Toplevel):
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title('Main Window')
+        self.title('Portfolio Manager')
+        self.iconbitmap('portfolio-manager/wallet.ico')
 
         self.l1 = ttk.Label(self, text = "SYMBOL", font=("Helvetica",12)).grid(row = 0, column = 0, padx= 5, pady=5)
         self.l2 = ttk.Label(self, text = "AMOUNT", font=("Helvetica",12)).grid(row = 0, column = 2, padx= 5, pady=5)
@@ -89,7 +92,7 @@ class App(tk.Tk):
             messagebox.showwarning(title="Warning", message="Empty portfolio")
 
     def incorrect_value(self):
-        self.l3 = ttk.Label(self, text = "Enter correct value", font=("Helvetica",8), fg="red").grid(row = 2, column = 2, padx= 5, pady=5)
+        self.l3 = tk.Label(self, text = "Enter correct value", font=("Helvetica",8),fg="red").grid(row = 2, column = 2, padx= 5, pady=5)
         self.e2_value.set('')
 
     def add_to_list(self):
@@ -117,7 +120,12 @@ class App(tk.Tk):
             for i in dict_of_portfolio :
                 print_records += (str(i) + " : " + str(dict_of_portfolio[i])) + "\n"
 
-            self.l3 = ttk.Label(self, text = print_records, font=("Helvetica",12)).grid(row=5, column=0)
+            labelframe = LabelFrame(self, text="Portfolio:")
+            labelframe.grid(row=6, column=0, columnspan = 2, padx = 10, pady = 10)
+
+            self.l3 = Label(labelframe, text = print_records, font=("Helvetica",12))
+            self.l3.grid(row=5, column=0, columnspan = 2, padx = 10, pady = 10)
+            
         elif response.status_code != 200:
             messagebox.showwarning(title="Warning", message="Symbol unknown")
 
@@ -130,7 +138,11 @@ class App(tk.Tk):
         for i in dict_of_portfolio :
             print_records += (str(i) + " : " + str(dict_of_portfolio[i])) + "\n"
         
-        self.l3 = ttk.Label(self, text = print_records).grid(row=5, column=0)
+        labelframe = LabelFrame(self, text="Portfolio:")
+        labelframe.grid(row=6, column=0, columnspan = 2, padx = 10, pady = 10)
+
+        self.l3 = Label(labelframe, text = print_records, font=("Helvetica",12))
+        self.l3.grid(row=5, column=0, columnspan = 2, padx = 10, pady = 10)
 
     def export_to_file(self):
         a_file = open("data.pkl", "wb")
