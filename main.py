@@ -28,8 +28,25 @@ class Window(tk.Toplevel):
 
         self.l2 = ttk.Label(self, text = "Growth since last close (%):").grid(row = 1, column = 0, padx= 5, pady=5)
         self.t2 = tk.Text(self, height = 1, width = 20)
-        
 
+        self.b1 = ttk.Button(self, text = "REFRESH", command = self.refresh).grid(row = 2, column = 0, padx= 5, pady=5)
+
+        self.refresh()
+
+    def refresh_window(self, sum):
+        self.t1.delete("1.0", tk.END)
+        self.t1.insert(tk.END,sum)
+        self.t1.grid(row = 0, column = 1)
+        
+    def change_currency(self, event):
+
+        changed = float(self.sum / float(currency.currency_covnertion(self.clicked.get())))
+
+        self.t1.delete("1.0", tk.END)
+        self.t1.insert(tk.END,round(changed, 2))
+        self.t1.grid(row = 0, column = 1)
+
+    def refresh(self):
         self.sum = 0
         self.growth = 0
         for i in dict_of_portfolio:
@@ -48,19 +65,6 @@ class Window(tk.Toplevel):
         self.t2.insert(tk.END,self.percent_growth)
         self.t2.grid(row = 1, column = 1)
 
-    def refresh_window(self, sum):
-        self.t1.delete("1.0", tk.END)
-        self.t1.insert(tk.END,sum)
-        self.t1.grid(row = 0, column = 1)
-        
-    def change_currency(self, event):
-
-        changed = float(self.sum / float(currency.currency_covnertion(self.clicked.get())))
-
-        self.t1.delete("1.0", tk.END)
-        self.t1.insert(tk.END,round(changed, 2))
-        self.t1.grid(row = 0, column = 1)
-
 
 class App(tk.Tk):
     def __init__(self):
@@ -77,6 +81,9 @@ class App(tk.Tk):
         self.b2 = ttk.Button(self, text = "IMPORT", command = self.import_from_file).grid(row = 3, column = 0, padx= 5, pady=5)
         self.b3 = ttk.Button(self, text = "EXPORT", command = self.export_to_file).grid(row = 3, column = 2, padx= 5, pady=5)
         self.b4 = ttk.Button(self, text = "NEXT", command = self.open_window).grid(row = 3, column = 1, padx= 5, pady=5)
+        self.b5 = ttk.Button(self, text = "CLEAR LAST", command = self.clear_last).grid(row = 2, column = 2, padx= 5, pady=5)
+        self.b6 = ttk.Button(self, text = "CLEAR ALL", command = self.clear_all).grid(row = 2, column = 0, padx= 5, pady=5)
+
 
         self.e1_value = tk.StringVar()
         self.e1 = ttk.Entry(self, textvariable = self.e1_value).grid(row = 1, column = 0, padx= 5, pady=5)
@@ -120,10 +127,10 @@ class App(tk.Tk):
             for i in dict_of_portfolio :
                 print_records += (str(i) + " : " + str(dict_of_portfolio[i])) + "\n"
 
-            labelframe = LabelFrame(self, text="Portfolio:")
-            labelframe.grid(row=6, column=0, columnspan = 2, padx = 10, pady = 10)
+            self.labelframe = LabelFrame(self, text="Portfolio:")
+            self.labelframe.grid(row=6, column=0, columnspan = 2, padx = 10, pady = 10)
 
-            self.l3 = Label(labelframe, text = print_records, font=("Helvetica",12))
+            self.l3 = Label(self.labelframe, text = print_records, font=("Helvetica",12))
             self.l3.grid(row=5, column=0, columnspan = 2, padx = 10, pady = 10)
             
         elif response.status_code != 200:
@@ -138,16 +145,45 @@ class App(tk.Tk):
         for i in dict_of_portfolio :
             print_records += (str(i) + " : " + str(dict_of_portfolio[i])) + "\n"
         
-        labelframe = LabelFrame(self, text="Portfolio:")
-        labelframe.grid(row=6, column=0, columnspan = 2, padx = 10, pady = 10)
+        self.labelframe = LabelFrame(self, text="Portfolio:")
+        self.labelframe.grid(row=6, column=0, columnspan = 2, padx = 10, pady = 10)
 
-        self.l3 = Label(labelframe, text = print_records, font=("Helvetica",12))
+        self.l3 = Label(self.labelframe, text = print_records, font=("Helvetica",12))
         self.l3.grid(row=5, column=0, columnspan = 2, padx = 10, pady = 10)
 
     def export_to_file(self):
         a_file = open("data.pkl", "wb")
         pickle.dump(dict_of_portfolio, a_file)
         a_file.close()
+
+    def clear_last(self):
+        try:
+            dict_of_portfolio.popitem()
+
+            print_records = ''
+            for i in dict_of_portfolio :
+                print_records += (str(i) + " : " + str(dict_of_portfolio[i])) + "\n"
+
+            self.labelframe.destroy()
+            self.l3.destroy()
+
+            if len(dict_of_portfolio) > 0:
+                self.labelframe = LabelFrame(self, text="Portfolio:")
+                self.labelframe.grid(row=6, column=0, columnspan = 2, padx = 10, pady = 10)
+
+                self.l3 = Label(self.labelframe, text = print_records, font=("Helvetica",12))
+                self.l3.grid(row=5, column=0, columnspan = 2, padx = 10, pady = 10)
+        except KeyError:
+            messagebox.showwarning(title="Warning", message="Empty portfolio")
+    
+    def clear_all(self):
+        if len(dict_of_portfolio) > 0:
+            dict_of_portfolio.clear()
+
+            self.labelframe.destroy()
+            self.l3.destroy()
+        else:
+            messagebox.showwarning(title="Warning", message="Portfolio already empty")
 
 
 if __name__ == "__main__":
