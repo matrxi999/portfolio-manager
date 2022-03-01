@@ -127,6 +127,12 @@ class App(tk.Tk):
             for i in dict_of_portfolio :
                 print_records += (str(i) + " : " + str(dict_of_portfolio[i])) + "\n"
 
+            if self.labelframe.winfo_exists:
+                self.labelframe.destroy()
+            
+            if self.l3.winfo_exists:
+                self.l3.destroy()
+
             self.labelframe = LabelFrame(self, text="Portfolio:")
             self.labelframe.grid(row=6, column=0, columnspan = 2, padx = 10, pady = 10)
 
