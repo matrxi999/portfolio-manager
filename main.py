@@ -7,7 +7,6 @@ from tkinter import messagebox
 import valuecheck
 import currency
 import requests
-import re
 
 dict_of_portfolio={}
 currencies =[
@@ -39,9 +38,7 @@ class Window(tk.Toplevel):
         self.t1.grid(row = 0, column = 1)
         
     def change_currency(self, event):
-
         changed = float(self.sum / float(currency.currency_covnertion(self.clicked.get())))
-
         self.t1.delete("1.0", tk.END)
         self.t1.insert(tk.END,round(changed, 2))
         self.t1.grid(row = 0, column = 1)
@@ -75,15 +72,12 @@ class App(tk.Tk):
         self.l1 = ttk.Label(self, text = "SYMBOL", font=("Helvetica",12)).grid(row = 0, column = 0, padx= 5, pady=5)
         self.l2 = ttk.Label(self, text = "AMOUNT", font=("Helvetica",12)).grid(row = 0, column = 2, padx= 5, pady=5)
         
-        self.b1 = ttk.Button(self, text = "ADD", command = self.add_to_list)
-        self.b1.grid(row = 2, column = 1, padx= 5, pady=5)
-        self.b1.config(state='active')
+        self.b1 = ttk.Button(self, text = "ADD", command = self.add_to_list).grid(row = 2, column = 1, padx= 5, pady=5)
         self.b2 = ttk.Button(self, text = "IMPORT", command = self.import_from_file).grid(row = 3, column = 0, padx= 5, pady=5)
         self.b3 = ttk.Button(self, text = "EXPORT", command = self.export_to_file).grid(row = 3, column = 2, padx= 5, pady=5)
         self.b4 = ttk.Button(self, text = "NEXT", command = self.open_window).grid(row = 3, column = 1, padx= 5, pady=5)
         self.b5 = ttk.Button(self, text = "CLEAR LAST", command = self.clear_last).grid(row = 2, column = 2, padx= 5, pady=5)
         self.b6 = ttk.Button(self, text = "CLEAR ALL", command = self.clear_all).grid(row = 2, column = 0, padx= 5, pady=5)
-
 
         self.e1_value = tk.StringVar()
         self.e1 = ttk.Entry(self, textvariable = self.e1_value).grid(row = 1, column = 0, padx= 5, pady=5)
@@ -96,28 +90,20 @@ class App(tk.Tk):
             window = Window(self)
             window.grab_set()
         else:
-            messagebox.showwarning(title="Warning", message="Empty portfolio")
-
-    def incorrect_value(self):
-        self.l3 = tk.Label(self, text = "Enter correct value", font=("Helvetica",8),fg="red").grid(row = 2, column = 2, padx= 5, pady=5)
-        self.e2_value.set('')
+            self.warning_mess("Empty portfolio")
 
     def add_to_list(self):
-
-        
         try:
             if len(self.e2_value.get()) == 0 or float(self.e2_value.get()) < 0:
-                    self.incorrect_value()
-                    return None
+                    self.warning_mess("Enter correct amount value")
+                    return
             symbol = str(self.e1_value.get())
             amount = float(self.e2_value.get())
         except ValueError:
-            self.incorrect_value()
-            return None
+            self.warning_mess("Empty portfolio")
+            return
 
-        url = "https://finance.yahoo.com/quote/"+ symbol + "?p="+ symbol + "&.tsrc=fin-srch"
-
-        response = requests.get(url)
+        response = requests.get("https://finance.yahoo.com/quote/"+ symbol + "?p="+ symbol + "&.tsrc=fin-srch")
 
         if response.status_code == 200:
             dict_of_portfolio[symbol] = amount
@@ -137,14 +123,10 @@ class App(tk.Tk):
             except AttributeError:
                 pass
 
-            self.labelframe = LabelFrame(self, text="Portfolio:")
-            self.labelframe.grid(row=6, column=0, columnspan = 2, padx = 10, pady = 10)
-
-            self.l3 = Label(self.labelframe, text = print_records, font=("Helvetica",12))
-            self.l3.grid(row=5, column=0, columnspan = 2, padx = 10, pady = 10)
+            self.update_portfolio_label(print_records)
             
         elif response.status_code != 200:
-            messagebox.showwarning(title="Warning", message="Symbol unknown")
+            self.warning_mess("Symbol unknown")
 
     def import_from_file(self):
         global dict_of_portfolio
@@ -164,11 +146,7 @@ class App(tk.Tk):
         except AttributeError:
             pass
         
-        self.labelframe = LabelFrame(self, text="Portfolio:")
-        self.labelframe.grid(row=6, column=0, columnspan = 2, padx = 10, pady = 10)
-
-        self.l3 = Label(self.labelframe, text = print_records, font=("Helvetica",12))
-        self.l3.grid(row=5, column=0, columnspan = 2, padx = 10, pady = 10)
+        self.update_portfolio_label(print_records)
 
     def export_to_file(self):
         a_file = open("data.pkl", "wb")
@@ -187,13 +165,9 @@ class App(tk.Tk):
             self.l3.destroy()
 
             if len(dict_of_portfolio) > 0:
-                self.labelframe = LabelFrame(self, text="Portfolio:")
-                self.labelframe.grid(row=6, column=0, columnspan = 2, padx = 10, pady = 10)
-
-                self.l3 = Label(self.labelframe, text = print_records, font=("Helvetica",12))
-                self.l3.grid(row=5, column=0, columnspan = 2, padx = 10, pady = 10)
+                self.update_portfolio_label(print_records)
         except KeyError:
-            messagebox.showwarning(title="Warning", message="Empty portfolio")
+            self.warning_mess("Empty portfolio")
     
     def clear_all(self):
         if len(dict_of_portfolio) > 0:
@@ -202,7 +176,17 @@ class App(tk.Tk):
             self.labelframe.destroy()
             self.l3.destroy()
         else:
-            messagebox.showwarning(title="Warning", message="Portfolio already empty")
+            self.warning_mess("Portfolio already empty")
+    
+    def warning_mess(self, message):
+        messagebox.showwarning(title="Warning", message=message)
+
+    def update_portfolio_label(self, print_records):
+        self.labelframe = LabelFrame(self, text="Portfolio:")
+        self.labelframe.grid(row=6, column=0, columnspan = 2, padx = 10, pady = 10)
+
+        self.l3 = Label(self.labelframe, text = print_records, font=("Helvetica",12))
+        self.l3.grid(row=5, column=0, columnspan = 2, padx = 10, pady = 10)
 
 
 if __name__ == "__main__":
