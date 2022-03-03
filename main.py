@@ -11,10 +11,10 @@ import requests
 dict_of_portfolio={}
 currencies =[
 'USD', 'AED', 'BRL', 'CAD', 'CHF', 'CNY', 
-'CZK', 'DKK', 'EUR', 'GBP', 'HKD', 'ILS', 'INR', 
-'MXN', 'MYR', 'NOK', 'NZD', 'PHP', 'PLN', 'RON', 
-'RUB', 'SAR', 'SEK', 'SGD', 'THB', 'TRY', 'TWD', 
-'USD', 'ZAR']
+'CZK', 'DKK', 'EUR', 'GBP', 'HKD', 'ILS', 
+'INR', 'MXN', 'MYR', 'NOK', 'NZD', 'PHP', 
+'PLN', 'RON', 'SAR', 'SEK', 'SGD', 'THB', 
+'TRY', 'TWD', 'USD', 'ZAR']
 
 class Window(tk.Toplevel):
     def __init__(self, parent):
@@ -28,9 +28,17 @@ class Window(tk.Toplevel):
         self.l2 = ttk.Label(self, text = "Growth since last close (%):").grid(row = 1, column = 0, padx= 5, pady=5)
         self.t2 = tk.Text(self, height = 1, width = 20)
 
+        
         self.b1 = ttk.Button(self, text = "REFRESH", command = self.refresh).grid(row = 2, column = 0, padx= 5, pady=5)
 
         self.refresh()
+        self.l3 = ttk.Label(self, text = "Current " + self.clicked.get() + " value per 1 USD:")
+        self.l3.grid(row = 0, column = 3, padx= 5, pady=5)
+
+        self.t3 = tk.Text(self, height = 1, width = 20)
+        self.t3.insert(tk.END,float(currency.currency_covnertion(self.clicked.get())))
+        self.t3.grid(row = 0, column = 4)
+        
 
     def refresh_window(self, sum):
         self.t1.delete("1.0", tk.END)
@@ -42,6 +50,12 @@ class Window(tk.Toplevel):
         self.t1.delete("1.0", tk.END)
         self.t1.insert(tk.END,round(changed, 2))
         self.t1.grid(row = 0, column = 1)
+
+        self.l3.config(text = "Current " + self.clicked.get() + " value per 1 USD:")
+
+        self.t3.delete("1.0", tk.END)
+        self.t3.insert(tk.END,float(currency.currency_covnertion(self.clicked.get())))
+        
 
     def refresh(self):
         self.sum = 0
@@ -61,7 +75,6 @@ class Window(tk.Toplevel):
         self.t2.delete("1.0", tk.END)
         self.t2.insert(tk.END,self.percent_growth)
         self.t2.grid(row = 1, column = 1)
-
 
 class App(tk.Tk):
     def __init__(self):
@@ -130,7 +143,7 @@ class App(tk.Tk):
 
     def import_from_file(self):
         global dict_of_portfolio
-        a_file = open("data.pkl", "rb")
+        a_file = open("portfolio-manager/data.pkl", "rb")
         dict_of_portfolio = pickle.load(a_file)
 
         print_records = ''
@@ -149,7 +162,7 @@ class App(tk.Tk):
         self.update_portfolio_label(print_records)
 
     def export_to_file(self):
-        a_file = open("data.pkl", "wb")
+        a_file = open("portfolio-manager/data.pkl", "wb")
         pickle.dump(dict_of_portfolio, a_file)
         a_file.close()
 
